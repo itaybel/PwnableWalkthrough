@@ -192,11 +192,11 @@ we get -1255736440, which will give us the flag when entered in the executable!
 ### Level 9 - Mistake
 
 We have a c code, which takes input from the user, xors it, and checks if it equals to a specific string located in a file.
-This file handles opening the file:
-if(fd=open("/home/mistake/password",O_RDONLY,0400) < 0){
+This line handles opening the file:
+`if(fd=open("/home/mistake/password",O_RDONLY,0400) < 0)`
 
-but because of operands priority, < comes before = , fd will be always 0. (of course only if the file was opened)
-Then we use the read command on fd, which is 0, but because 0 is the file descriptor of stdin, it actually asks us for the password, so now we can controll it.
+but because of operands priority, < comes before = , fd will be always 0. (of ourse only if the file was opened)
+Then we use the read command on fd, which is 0, but because 0 is the file descriptor of stdin, it actually asks us for the password, so now we can control it.
 So lets give it the password: bbbbbbbbbb
 and then when it actually asks us to guess the password, we should enter cccccccccc , beacuse cccccccccc will become bbbbbbbbbb after the xor function.
 
@@ -204,6 +204,7 @@ and then when it actually asks us to guess the password, we should enter ccccccc
 
 Now we have a c code which runs the command `echo shellshock` with root privileges.
 
+```c
 #include <stdio.h>
 int main(){
  setresuid(getegid(), getegid(), getegid());
@@ -211,10 +212,11 @@ int main(){
  system("/home/shellshock/bash -c 'echo shock_me'");
  return 0;
 }
-
+```
 the program doesn't require any input. But beacause of the name of the ctf, we can know it has something to do with the famous shellshock vulnerability.
 Then I found a cool way of exploiting it:
-env x='() { :;}; echo vulnerable' ./shellshock
+
+`env x='() { :;}; echo vulnerable' ./shellshock`
 
 but it only echos vulnerable into the string.
 if we try to do `cat flag`, we'll see that it throws some kind of error.
@@ -224,7 +226,7 @@ env x='() { :;}; echo $(<flag)' ./shellshock
 ### Level 12 - BlackJack
 
 In this challenge we have to be millionares.
-We have the source code given to us, so after searching for something instersting, I have found this:
+We have the source code given to us, so after searching for something interseting, I have found this:
 ```
 int betting() //Asks user amount to bet
 {
@@ -244,7 +246,8 @@ int betting() //Asks user amount to bet
 it asks the user for a number, and checks if it bigger than the money they have.
 We can exploit it by entering a really small number, like -100000000 which the if will not stop.
 Then once we lost, this following line gets called:
-cash = cash - bet;
+
+`cash = cash - bet;`
 but because bet is negetive, we get 100000000!
 And then when playing again we can see the flag!
 
