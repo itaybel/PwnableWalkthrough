@@ -28,7 +28,8 @@ int main(int argc, char* argv[], char* envp[]){
 }
 ```
 
-which takes a number from argv, substracts 0x1234 from it, and reads 32 bytes from the file
+which takes a number from argv, substracts 0x1234 from it, and reads 32 bytes from the file.
+
 as we know, stdin has a file discriptor of 0, so if we pass 4660 = 0x1234 to the program , it should let us write LETMEWIN and get the flag!
 
 
