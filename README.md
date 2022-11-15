@@ -185,7 +185,7 @@ we see a comment of the string, then we run x/s *0x6c2070 to see the string in t
 
 We have a c file, which generates a random number, xors it with our input, and checks if it equals to 0xdeadbeef.
 But in reality, it doesn't really generates a random number, since a seed hasn't been specified, so the numbers will be the same.
-We can try to create that number, by extracting key from the equation:  0xdeadbeef ^ random = (key ^ random) ^ random = key
+We can try to create that number, by extracting key from the equation:  `0xdeadbeef ^ random = (key ^ random) ^ random = key`
 After running this print: `printf("%d", rand() ^ 0xdeadbeef);`
 we get -1255736440, which will give us the flag when entered in the executable!
 
