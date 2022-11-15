@@ -108,6 +108,7 @@ int main(int argc, char* argv[]){
 lets disassemble the func function in the  executable using gdb:
 
 Dump of assembler code for function func:
+
 ```assembly
    0x0000062c <+0>:     push   %ebp
    0x0000062d <+1>:     mov    %esp,%ebp
@@ -159,6 +160,7 @@ When we try to , we get something usefull:
 `$Info: This file is packed with the UPX executable packer http://upx.sf.net $`
 which means that we cant disassemble our program because of an exectuable packer called upx.
 lets run upx -d flag to unpack it, and then we can successfully disassemble it.
+```assembly
    0x0000000000401164 <+0>:     push   %rbp
    0x0000000000401165 <+1>:     mov    %rsp,%rbp
    0x0000000000401168 <+4>:     sub    $0x10,%rsp
@@ -176,7 +178,7 @@ lets run upx -d flag to unpack it, and then we can successfully disassemble it.
    0x000000000040119f <+59>:    leave  
    0x00000000004011a0 <+60>:    ret    
 End of assembler dump.
-
+```
 we see a comment of the string, then we run x/s *0x6c2070 to see the string in that address.
 
 ### Level 6 - Random
