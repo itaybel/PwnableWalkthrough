@@ -227,7 +227,7 @@ env x='() { :;}; echo $(<flag)' ./shellshock
 
 In this challenge we have to be millionares.
 We have the source code given to us, so after searching for something interseting, I have found this:
-```
+```c
 int betting() //Asks user amount to bet
 {
  printf("\n\nEnter Bet: $");
@@ -255,5 +255,7 @@ And then when playing again we can see the flag!
 
 We have a c code which changes the path enviorment variable to /thankyouverymuch, filters our input, and run it.
 We would normally just do `./cmd1 "cat flag"`, but first of all we cant just run cat, cause we changed the enviroment variable, so we need to specify the whole path which is /bin/cat. the other problem is that the program filters any inputs which contains the word `flag`.
-We can still see the flag if we just do `./cmd1 "cat *" to see all the files in the directory, and at the bottom we can see the flag.
+We can still see the flag if we just do:
+`./cmd1 "cat *" `
+to see all the files in the directory, and at the bottom we can see the flag.
 
