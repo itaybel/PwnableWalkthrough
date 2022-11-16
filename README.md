@@ -415,7 +415,7 @@ int main(int argc, char* argv[], char** envp){
 }
 ```
 First of all , it changes the path enviroment variable, so we can't just do `cat *`, and we need to specify the whole path of cat
-which is `/bin/cat *`. but the filter now is a lot stricter, and it doesn't allow any `/`. so we need to thing about a way to run cat,
+which is `/bin/cat`. but the filter now is a lot stricter, and it doesn't allow any `/`. so we need to think about a way to run cat,
 without specifing the whole path, and without being in the default path enviroment variable.
 The way to come across it, is by using the `command` bash builtin command.
 This command executes the given command normally *but* if the `-p` flag is given, 
