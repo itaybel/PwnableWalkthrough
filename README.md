@@ -363,7 +363,14 @@ void play(){
 }
 
 ```
-First of all , I noticed that 
+First of all , I noticed that when we enter our input, its not really asking us for 6 numbers, but 6 chars, so input like "abcdef" is valid.
+Aswell when it generates random numbers, it does the same thing, but then it does modulo 45.
+Then, in the for loops that check if there are 6 hits, it iterates through each character in `lotto`, and then compares it to each character in `sumbit`
+which means, if our input is something like `111111`, and the generated numbers are: `1,2,3,4,5,6`, we would have 6 hits.
+But because the input is taken as chars, and the random numbers are between 1-45, we would have to enter 6 chars which their ascii value is less than 45.
+So if we enter something like `!!!!!!!` (the ascii value of `!` is 33, we can have a better change of winning the game (we need only one of the 6 generated random numbers to be 33, so the chance of us winning is 6/45) so after giving the program `!!!!!!` many times, we will get the flag!
+
+
 ### Level 14 - cmd1
 
 We have a c code which changes the path enviorment variable to /thankyouverymuch, filters our input, and run it.
