@@ -380,3 +380,49 @@ We can still see the flag if we just do:
 `./cmd1 "cat *" `
 to see all the files in the directory, and at the bottom we can see the flag.
 
+### Level 15 - cmd2
+
+This challenge is really close to cmd1. it takes input from argv, filters it, and executes it using system().
+
+Code: 
+```c
+#include <string.h>
+
+int filter(char* cmd){
+        int r=0;
+        r += strstr(cmd, "=")!=0;
+        r += strstr(cmd, "PATH")!=0;
+        r += strstr(cmd, "export")!=0;
+        r += strstr(cmd, "/")!=0;
+        r += strstr(cmd, "`")!=0;
+        r += strstr(cmd, "flag")!=0;
+        return r;
+}
+
+extern char** environ;
+void delete_env(){
+        char** p;
+        for(p=environ; *p; p++) memset(*p, 0, strlen(*p));
+}
+
+int main(int argc, char* argv[], char** envp){
+        delete_env();
+        putenv("PATH=/no_command_execution_until_you_become_a_hacker");
+        if(filter(argv[1])) return 0;
+        printf("%s\n", argv[1]);
+        system( argv[1] );
+        return 0;
+}
+```
+First of all , it changes the path enviroment variable, so we can't just do `cat *`, and we need to specify the whole path of cat
+which is `/bin/cat *`. but the filter now is a lot stricter, and it doesn't allow any `/`. so we need to thing about a way to run cat,
+without specifing the whole path, and without being in the default path enviroment variable.
+The way to come across it, is by using the `command` bash builtin command.
+This command executes the given command normally *but* if the `-p` flag is given, 
+the  search  for  command  is  performed  using  a  default  value for PATH that is
+guaranteed to find all of the standard utilities, so we can run `cat` normally.
+Our solution will be:
+`./cmd2 "command -p cat *"`
+
+
+
