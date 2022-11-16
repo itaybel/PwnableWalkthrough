@@ -305,6 +305,65 @@ Then once we lost, this following line gets called:
 but because bet is negetive, we get 100000000!
 And then when playing again we can see the flag!
 
+### Level 13 - lotto
+
+This time, we have a program which takes input,  generates 6 numbers, and checks if they are the same.
+In this circumstances, we have a change of 1/8145060 to win.
+But lets try to understand the code in order to exploit it:
+```c
+
+unsigned char submit[6];
+
+void play(){
+
+        int i;
+        printf("Submit your 6 lotto bytes : ");
+        fflush(stdout);
+
+        int r;
+        r = read(0, submit, 6);
+
+        printf("Lotto Start!\n");
+        //sleep(1);
+
+        // generate lotto numbers
+        int fd = open("/dev/urandom", O_RDONLY);
+        if(fd==-1){
+                printf("error. tell admin\n");
+                exit(-1);
+        }
+        unsigned char lotto[6];
+        if(read(fd, lotto, 6) != 6){
+                printf("error2. tell admin\n");
+                exit(-1);
+        }
+        for(i=0; i<6; i++){
+                lotto[i] = (lotto[i] % 45) + 1;         // 1 ~ 45
+        }
+        close(fd);
+
+        // calculate lotto score
+        int match = 0, j = 0;
+        for(i=0; i<6; i++){
+                for(j=0; j<6; j++){
+                        if(lotto[i] == submit[j]){
+                                match++;
+                        }
+                }
+        }
+
+        // win!
+        if(match == 6){
+                system("/bin/cat flag");
+        }
+        else{
+                printf("bad luck...\n");
+        }
+
+}
+
+```
+First of all , I noticed that 
 ### Level 14 - cmd1
 
 We have a c code which changes the path enviorment variable to /thankyouverymuch, filters our input, and run it.
