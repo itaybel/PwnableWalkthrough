@@ -265,7 +265,9 @@ End of assembler dump.
 ```
 We can see that `passcode1` is located in `ebp - 0x10`, and `passcode2` in `ebp - 0xc`.
 So the memory will look something like that:
+
 ![image](https://user-images.githubusercontent.com/56035342/209885145-5571d145-f628-4b3a-a802-a3d4ed536e01.png)
+
 so we can change the value of passcode1 even inside the `welcome` function!
 now lets try to understand what the `login` function does.
 First of all, the program will ask the user for input, but it will write it to the value of passcode1.
@@ -280,16 +282,16 @@ Dump of assembler code for function fflush@plt:
 End of assembler dump.
 ```
 We found the address 0x804a004, which is an address in the Global Offset Table, which calls the libc fflush function.
-If we can set the value of `passcode1` to `0x804a004`, we can write change the address in the Global Offset Table, so that we can run our own code!
-In order to change the value of `passcode1` , we would need to do:
+If we can set the value of `passcode1` to `0x804a004`, we can  change the address in the Global Offset Table, to run our own code!
+In order to change the value of `passcode1` , we need to do:
 `(python -c "print('A' * 96 + '\x04\xa0\x04\x08')") | ./passcode`
 
-After that, we will reach the scanf of `passcode1`, which will write an input from the user into 0x804a004.
+Then, we will reach the scanf of `passcode1`, which will write an input from the user into 0x804a004.
 So now we can control where the program will jump to!
-So in order to get the flag, the best thing to do is to jump to the end where the `system("/bin/cat flag");` starts.
+In order to get the flag, the best thing to do is to jump to the end , where the `system("/bin/cat flag");` starts.
 it starts right in this line:
 `0x080485e3 <+127>:   mov    DWORD PTR [esp],0x80487af`
-but because scanf takes input in decimal, we would need to change 0x080485e3 to decimal, which is 134514147.
+but because scanf takes input in decimal, we need to change 0x080485e3 to decimal, which is 134514147.
 So the final solution will be:
 `(python -c "print('A' * 96 + '\x04\xa0\x04\x08' + '134514147')") | ./passcode`
 
