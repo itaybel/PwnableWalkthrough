@@ -20,7 +20,7 @@ int    $0x80
 
 ```
 
-This happens because the shellcode is stored in the stack, and the `push` command is writing stuff to the stack.
+This happens because the shellcode is stored in the stack, and the `push` command is writing stuff to the stack, so it overwrites the next commands.
 Which means if we will be able to just change `esp` to some random location, we will be able to push to the stack normally without overriding next instructions.
 Since we can only change 1 byte of the shellcode, the only 1 byte command we can use is pop.
 So to change esp we would have to do `pop esp`, which is `0x5c`
