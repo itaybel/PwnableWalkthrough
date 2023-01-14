@@ -14,4 +14,6 @@ We can for example change one of the pushes, since they are 1 byte aswell.
 One thing to notice is that we normally can't do things like `xor esp, esp`, `pop esp`, because esp is a special register.
 In order to be able to do it we would have to run the command `ulimit -s unlimited`.
 So the answer will be:
+
+
 ![image](https://user-images.githubusercontent.com/56035342/212479565-354078e2-4cf4-4163-a0d8-63c2d5de9d8f.png)
