@@ -673,7 +673,7 @@ But all of our inputs are multiples of 16, so why does it happen?
 In reality, when we allocate memory, we allocate 8 more bytes for the header of the chunk.
 Which means if we are in the i'th iteration, and we enter 2^i - 8, it will allocate 2^i bytes, and it will not crash!
 So the solution is as follows:
-
+```
 specify the memcpy amount between 8 ~ 16 : 8 (since 8 + 8 = 16 is a multiple of 16)
 specify the memcpy amount between 16 ~ 32 : 24 (since 24 + 8 = 32 is a multiple of 16)
 specify the memcpy amount between 32 ~ 64 : 56  ...
@@ -684,7 +684,7 @@ specify the memcpy amount between 512 ~ 1024 : 1016
 specify the memcpy amount between 1024 ~ 2048 : 2040
 specify the memcpy amount between 2048 ~ 4096 : 4088
 specify the memcpy amount between 4096 ~ 8192 : 8184
-
+```
 
 
 
