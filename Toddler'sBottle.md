@@ -577,8 +577,113 @@ Which means our payload will be:
 `./uaf 24 payload`
 
 
+### Level 17 - Memcpy
 
+We are given a c program, which is pretty big so I will not specify the code.
+The program is asking the user for 10 numbers, which will be the sizes of blocks in memory.
+It compares a slow_memcpy, and a fast_memcpy.
+the slow memcpy just copies the `src` into the `dest` byte by byte, so no special code there.
+In the other hand, the fast_copy copies the src to the dest chunk by chunk, where each chunk is 64 bytes:
 
+```c
+char* fast_memcpy(char* dest, const char* src, size_t len){
+        size_t i;
+        // 64-byte block fast copy
+        if(len >= 64){
+                i = len / 64;
+                len &= (64-1);
+                while(i-- > 0){
+                        __asm__ __volatile__ (
+                        "movdqa (%0), %%xmm0\n"
+                        "movdqa 16(%0), %%xmm1\n"
+                        "movdqa 32(%0), %%xmm2\n"
+                        "movdqa 48(%0), %%xmm3\n"
+                        "movntps %%xmm0, (%1)\n"
+                        "movntps %%xmm1, 16(%1)\n"
+                        "movntps %%xmm2, 32(%1)\n"
+                        "movntps %%xmm3, 48(%1)\n"
+                        ::"r"(src),"r"(dest):"memory");
+                        dest += 64;
+                        src += 64;
+                }
+        }
+
+        // byte-to-byte slow copy
+        if(len) slow_memcpy(dest, src, len);
+        return dest;
+}
+```
+Lets run the program in gdb with some random input:
+```
+specify the memcpy amount between 8 ~ 16 : 8
+specify the memcpy amount between 16 ~ 32 : 16
+specify the memcpy amount between 32 ~ 64 : 32
+specify the memcpy amount between 64 ~ 128 : 64
+specify the memcpy amount between 128 ~ 256 : 128
+specify the memcpy amount between 256 ~ 512 : 256
+specify the memcpy amount between 512 ~ 1024 : 512
+specify the memcpy amount between 1024 ~ 2048 : 1024
+specify the memcpy amount between 2048 ~ 4096 : 2048
+specify the memcpy amount between 4096 ~ 8192 : 4096
+ok, lets run the experiment with your configuration
+experiment 1 : memcpy with buffer size 8
+ellapsed CPU cycles for slow_memcpy : 3882
+ellapsed CPU cycles for fast_memcpy : 310
+
+experiment 2 : memcpy with buffer size 16
+ellapsed CPU cycles for slow_memcpy : 356
+ellapsed CPU cycles for fast_memcpy : 310
+
+experiment 3 : memcpy with buffer size 32
+ellapsed CPU cycles for slow_memcpy : 446
+ellapsed CPU cycles for fast_memcpy : 634
+
+experiment 4 : memcpy with buffer size 64
+ellapsed CPU cycles for slow_memcpy : 882
+ellapsed CPU cycles for fast_memcpy : 230
+
+experiment 5 : memcpy with buffer size 128
+ellapsed CPU cycles for slow_memcpy : 1398
+
+Program received signal SIGSEGV, Segmentation fault.
+0x080487cc in fast_memcpy ()
+(gdb) x/10i $eip
+=> 0x80487cc <fast_memcpy+52>:  movntps %xmm0,(%edx)
+   0x80487cf <fast_memcpy+55>:  movntps %xmm1,0x10(%edx)
+   0x80487d3 <fast_memcpy+59>:  movntps %xmm2,0x20(%edx)
+   0x80487d7 <fast_memcpy+63>:  movntps %xmm3,0x30(%edx)
+   0x80487db <fast_memcpy+67>:  addl   $0x40,0x8(%ebp)
+   0x80487df <fast_memcpy+71>:  addl   $0x40,0xc(%ebp)
+   0x80487e3 <fast_memcpy+75>:  mov    -0x4(%ebp),%eax
+   0x80487e6 <fast_memcpy+78>:  lea    -0x1(%eax),%edx
+   0x80487e9 <fast_memcpy+81>:  mov    %edx,-0x4(%ebp)
+   0x80487ec <fast_memcpy+84>:  test   %eax,%eax
+(gdb) info registers
+eax            0xf7fca000       -134438912
+ecx            0xf7fd3f80       -134398080
+edx            0x804c4a8        134530216
+ ```
+ 
+ We can see that the program is crashing in the instrucion
+ `0x80487cc <fast_memcpy+52>:  movntps %xmm0,(%edx)`
+
+After reading a bit about the `movntps` instruction , I saw that the memory operand must be aligned on 16-byte boundry.
+since `edx` isn't a multiple of 16, it gives us a seg fault!
+But all of our inputs are multiples of 16, so why does it happen?
+In reality, when we allocate memory, we allocate 8 more bytes for the header of the chunk.
+Which means if we are in the i'th iteration, and we enter 2^i - 8, it will allocate 2^i bytes, and it will not crash!
+So the solution is as follows:
+
+specify the memcpy amount between 8 ~ 16 : 8 (since 8 + 8 = 16 is a multiple of 16)
+specify the memcpy amount between 16 ~ 32 : 24 (since 24 + 8 = 32 is a multiple of 16)
+specify the memcpy amount between 32 ~ 64 : 56  ...
+specify the memcpy amount between 64 ~ 128 : 120
+specify the memcpy amount between 128 ~ 256 : 248
+specify the memcpy amount between 256 ~ 512 : 504
+specify the memcpy amount between 512 ~ 1024 : 1016
+specify the memcpy amount between 1024 ~ 2048 : 2040
+specify the memcpy amount between 2048 ~ 4096 : 4088
+specify the memcpy amount between 4096 ~ 8192 : 8184
 
 
 
