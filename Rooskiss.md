@@ -50,6 +50,34 @@ for i in range(400):
 ```
 
 
+### Dragon - Level 10
+
+We have a cool program, which lets us fight a dragon.
+I have put the binary in IDA, found some things about the program:
+![image](https://user-images.githubusercontent.com/56035342/214085600-37b910fe-70eb-4dbd-883c-c9803358de19.png)
+
+The program calls the attack function, and checks if the returned value is 0. if it does, it will make us winners.
+Lets see what can we do in order to win:
+First of all, I noticed that I can switch between the Mom dragon and the Baby dragon each time I die.
+
+![image](https://user-images.githubusercontent.com/56035342/214086610-54b3c3d2-e217-4ab3-947e-d5d6c1978b81.png)
+
+This is the Priest Attack.
+We can see that it will ask us for input, until the user dies (green), or the dragon dies(red).
+Our job is to win, and kill the dragon.
+We can see something interesting in the while last loop.
+it makes the pointer a char pointer, and then dereferences it , and checks if the health is bigger than zero.
+But lets keep in mind that char can only contain 256 numbers, (-128 to 128)
+so if the health of the dragon will be greater than 128, we will get an overflow, and win! (it gets bigger by 4 each move)
+The best way to do it is by losing in purpose to the Mom dragon , and fight the baby dragon (it has less damage), this time we will have the most turns.
+After that, the user will choose the Priest, and they will just pick HolyShield until they don't have mana, and then they will pick Clarity to refresh the mana.
+Then , after we win, a free will be done to the dragon object, and then it will malloc a new block with our input!
+![image](https://user-images.githubusercontent.com/56035342/214087910-193897b2-8ad4-4f76-bf5e-ddfa71c19a5d.png)
+So we can just replace the old function reference to the system call, and we will get a shell!
+
+`(python2 -c "print('1\n1\n1\n1\n3\n3\n2\n3\n3\n2\n3\n3\n2\n3\n3\n2\n' + '\xbf\x8d\x04\x08\n')"; cat) | nc pwnable.kr 9004`
+
+
 ### Fix - Level 9
 
 We have a simple c program, which simulates buffer overflow with a shellcode from shell-storm.
@@ -79,7 +107,7 @@ One thing to notice is that we normally can't do things like `xor esp, esp`, `po
 In order to be able to do it we would have to run the command `ulimit -s unlimited`.
 So the answer will be:
 
-### Echo1 - Level 10
+### Echo1 - Level 12
 
 We have a program which asks a user for a name, and then a string and it echos the string.
 the vulnerability in this program is that when we get input from the user, we can write after the string, since the fgets writes to many characters:
