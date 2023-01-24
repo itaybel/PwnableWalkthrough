@@ -1,6 +1,7 @@
 ## Sudoku - Level 8
 
-We need to solve 100 soduko boards, with a twist
+We need to solve 100 soduko boards with a twist.
+
 I grabbed the first sudoku solver online, and added the new rules.
 This is the code I have created:
 
