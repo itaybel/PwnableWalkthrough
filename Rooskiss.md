@@ -147,8 +147,8 @@ This time we have the same program as `echo`, but the difference now is that we 
 One important thing we need to notice, is that once we press `4` for exit, it will instanstly free the `o` variable, which is storing the echo function.
 We can use that for our own advantage, since we can trigger a free, and the program will still be ran (if we press n)
 This way we can override the `greetings` function stored in the `o` variable, and jump to any location we want.
-The way I did it is by entering a shellcode in the name (because then it will be in the stack).
-Then I used the `FSB` in the menu, to leak stack addresses.
+We can do it by using the `UAF` option, since it allocates a chunk in the heap, so if there is a free chunk there, we will be able to control the `o` varible.
+Then I entered a shellcode in the name (because then it will be in the stack), and then I used the `FSB` in the menu, to leak stack addresses.
 I noticed that in the 10th paramater, there is a pointer to the stack which is 32 bytes after our input.
 So if we substract 32 from that number, and override the `greetings` function with it, we will run the shellcode specified in the name!
 #Final exploit:
