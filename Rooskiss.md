@@ -151,7 +151,8 @@ We can do it by using the `UAF` option, since it allocates a chunk in the heap, 
 Then I entered a shellcode in the name (because then it will be in the stack), and then I used the `FSB` in the menu, to leak stack addresses.
 I noticed that in the 10th paramater, there is a pointer to the stack which is 32 bytes after our input.
 So if we substract 32 from that number, and override the `greetings` function with it, we will run the shellcode specified in the name!
-#Final exploit:
+
+Final exploit:
 
 
 ```py
