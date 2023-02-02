@@ -4,7 +4,7 @@
 The idea of this program, is to perform a return to libc attack.
 The steps to get a shell are the following:
 1. we leak libc. we can do it by reading one of libc functions's addresses in the got, and subtract their offsets.
-2. Then, we need our code to jmp to `system` in libc. we can do it by using a rop gadget which will increase `esp` and do `ret`.buffer.
+2. Then, we need our code to jmp to `system` in libc. we can do it by using a rop gadget which will increase `esp` and do `ret`.
 3. Then `esp` will point inside our 1024 sized buffer, so we can type `system` address to jump there.
 4. system will do a `pop` to get a pointer to the argument, so I entered the start of the `tape` variable to the buffer (PIE is disabled)
 5. Then I wrote to the start of the `tape` variable `/bin/sh` to pop a shell.
