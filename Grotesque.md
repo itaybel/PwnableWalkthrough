@@ -35,11 +35,11 @@
 This challenge is really similar to coin1, but now we can't use the previous scale result.
 One important thing to notice is that 2^C <= N.
 This is important because this allows us to separate the scales into `C` different groups, 
-where the i'th groups contains all the numbers which have their i'th bit on.
+where the i'th group contains all the numbers which have their i'th bit on.
 This way, the server will give us `C` weights, where the i'th weight is divisible by 10 if and only if
-the i'th bit is on on the targeted number.
+the i'th bit is on in the targeted number.
 this way we can go thorugh each group (we'll call it the i'th group)
-if the weight isn't divisible by 10 we know that the i'th bit is on , so we add 2*i to the number.
+and if the weight isn't divisible by 10 we know that the i'th bit is on , so we add 2*i to the number.
 At the end, we send this number.
 Exploit:
 ```py
