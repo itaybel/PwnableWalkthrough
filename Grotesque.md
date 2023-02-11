@@ -41,6 +41,8 @@ the i'th bit is on in the targeted number.
 this way we can go thorugh each group (we'll call it the i'th group)
 and if the weight isn't divisible by 10 we know that the i'th bit is on , so we add 2*i to the number.
 At the end, we send this number.
+(In order to run it faster I ran my exploit inside the pwnable server)
+
 Exploit:
 ```py
 from pwn import *
