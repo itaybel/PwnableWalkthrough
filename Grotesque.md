@@ -1,3 +1,90 @@
+## Coin2 - Level 5
+```
+	---------------------------------------------------
+	-              Shall we play a game?              -
+	---------------------------------------------------
+	
+	You have given some gold coins in your hand.
+	however, there is one counterfeit coin among them
+	counterfeit coin looks exactly same as real coin
+	luckily, its weight is different from real one
+	real coin weighs 10, counterfeit coin weighes 9
+	help me to find the counterfeit coin with a scale.
+	if you find 100 counterfeit coins, you will get reward :)
+	FYI, you have 60 seconds.
+
+	- How to play - 
+	1. you get a number of coins (N) and number of chances (C) to use scale
+	2. then you specify C set of index numbers of coins to be weighed
+	3. you get the weight information of each C set
+	4. you give the answer
+	
+	- Example -
+	[Server] N=4 C=2 	# find counterfeit among 4 coins with 2 trial
+	[Client] 0 1-1 2	# weigh two set of coins (first and second), (second and third)
+	[Server] 20-20		# scale result : 20 for first set, 20 for second set
+	[Client] 3 		# counterfeit coin is fourth!
+	[Server] Correct!
+
+	- Note - 
+	dash(-) is used as a seperator for each set
+
+	- Ready? starting in 3 sec ... -
+```
+
+This challenge is really similar to coin1, but now we can't use the previous scale result.
+One important thing to notice is that 2^C <= N.
+This is important because this allows us to separate the scales into `C` different groups, 
+where the i'th groups contains all the numbers which have their i'th bit on.
+This way, the server will give us `C` weights, where the i'th weight is divisible by 10 if and only if
+the i'th bit is on on the targeted number.
+this way we can go thorugh each group (we'll call it the i'th group)
+if the weight isn't divisible by 10 we know that the i'th bit is on , so we add 2*i to the number.
+At the end, we send this number.
+Exploit:
+```py
+from pwn import *
+import time
+
+def is_set(x, n):
+    return x & 2 ** n != 0 
+
+p = remote("localhost" ,9008)
+print(p.recv().decode())
+time.sleep(3)
+for k in range(100):
+	N, C = [int(i.split("=")[1]) for i in p.recv().decode().split(" ")]
+
+	groups = []
+
+
+	for i in range(C): # create c groups where the i'th group has all the numbers with the i'th bit on
+		new_group = []
+		for j in range(N):
+			if is_set(j, i):
+				new_group.append(j)
+		groups.append(new_group)
+
+	payload = ""
+
+	for group in groups:
+		payload += " ".join([ str(i) for i in group]) + "-"
+        
+	p.sendline(payload[:-1])
+	results = [int(i) for i in p.recv().decode().split("-")]
+	num = 0
+	for i in range(len(results)):
+		if results[i] % 10 != 0:
+			num += (2 ** i)
+
+	p.sendline(str(num))
+	print(p.recv())
+
+print(p.recv())
+
+```
+
+
 ## Sudoku - Level 8
 
 We need to solve 100 soduko boards with a twist.
