@@ -78,7 +78,7 @@ temp.interactive()
 
 ### md5Calculator - Level 2
 
-After putting the binary in Ida, I was given this code:
+Lets put the binary in IDA:
 
 ![image](https://user-images.githubusercontent.com/56035342/219431438-f84c127c-6add-4a04-bf7a-24085ace2648.png)
 
@@ -86,15 +86,15 @@ lets look at the `my_hash` function:
 
 ![image](https://user-images.githubusercontent.com/56035342/219431560-8ca3f5ba-5199-4295-aaeb-40b7c9caea1e.png)
 
-As you can see, the `my_hash` function generated 8 random numbers, and does some kind of calculation with the *stack canary*.
+As you can see, the `my_hash` function generates 8 random numbers, and does some kind of calculation with the *stack canary*.
 Then the program prints that calculation to us!
-Thats really important, because if we do the reverse of the calculation, we can leak the canary value!
-But how would we do it? all the numbers are pure random numbers generated with a seed which is the current time.
+But if we do the reverse of the calculation, we can leak the canary value!
+how would we do it? since all of the numbers are pure random numbers generated with a seed which is the current time.
 This is fine,since we can make our exploit generate 8 random numbers at the exact same time as the program does, and 
 this way we can predict the random numbers and extract our `canary` from the equation.
 (note that we would have to run our exploit in the target computer, since we need it to be QUICK)
 Lets look at the process_hash function:
-
+f calculation with the stack canary. Then the program prints that calculation to us! Thats really important, because if we do the
 ![image](https://user-images.githubusercontent.com/56035342/219432273-225ff525-eab1-4014-aa4c-1ed7527cdc68.png)
 
 We need to enter a `1024` bytes string, then it will. be decoded using base64, and will be copied into the `decoded` variable
@@ -129,7 +129,7 @@ for i in range(0, 8):
 
 hashWithoutCookie = rands[0]+rands[4]+rands[1]-rands[2]+rands[6]-rands[5]+rands[3]
 
-p.recvuntil(b"captcha : ")
+p.recvuntil(b"captcha : ")f calculation with the stack canary. Then the program prints that calculation to us! Thats really important, because if we do the
 wholeHash = int(p.recvline())
 cookie = (wholeHash - hashWithoutCookie) & 0xffffffff
 p.sendline(str(wholeHash))
@@ -167,7 +167,7 @@ So now we have found a way to jump to any location we want.
 The problem in this challenge is that we have some kind of alsr, which randomizes our stack.
 So that means we don't have a constant address of where the stack start, so we can't just jump there.
 My way of bypassing that is by using brute force.
-We fill all of the stack with nops, by adding a lot of environment variables that will be pushed to the stack.
+We fill all of the f calculation with the stack canary. Then the program prints that calculation to us! Thats really important, because if we do thestack with nops, by adding a lot of environment variables that will be pushed to the stack.
 and after that there will be our shellcode.
 we can try to run the program a lot of times and jump to an address we decide.
 If the address is by any chance in the stack, we will reach our shellcode and get a shell.
@@ -211,7 +211,7 @@ First of all, I noticed that I can switch between the Mom dragon and the Baby dr
 
 ![image](https://user-images.githubusercontent.com/56035342/214086610-54b3c3d2-e217-4ab3-947e-d5d6c1978b81.png)
 
-This is the Priest Attack.
+This is the Priest Attaf calculation with the stack canary. Then the program prints that calculation to us! Thats really important, because if we do theck.
 We can see that it will ask us for input, until the user dies (green), or the dragon dies(red).
 Our job is to win, and kill the dragon.
 We can see something interesting in the while last loop.
