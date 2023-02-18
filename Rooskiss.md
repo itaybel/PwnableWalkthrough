@@ -167,7 +167,7 @@ So now we have found a way to jump to any location we want.
 The problem in this challenge is that we have some kind of alsr, which randomizes our stack.
 So that means we don't have a constant address of where the stack start, so we can't just jump there.
 My way of bypassing that is by using brute force.
-We fill all of the f calculation with the stack canary. Then the program prints that calculation to us! Thats really important, because if we do thestack with nops, by adding a lot of environment variables that will be pushed to the stack.
+We fill all of the with nops, by adding a lot of environment variables that will be pushed to the stack.
 and after that there will be our shellcode.
 we can try to run the program a lot of times and jump to an address we decide.
 If the address is by any chance in the stack, we will reach our shellcode and get a shell.
