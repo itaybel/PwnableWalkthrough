@@ -299,5 +299,5 @@ tmp = p.recv().decode()
 
 p.sendline(tmp)
 
-print(p.recvall().decode())
+print(p.recv().decode())
 ```
