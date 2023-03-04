@@ -1,4 +1,4 @@
-### Here I will publish only the challenges I found easy, since I don't want everyone to get easy points :)
+### Here I will publish only the challenges I found easy, since I don't want everyone to get all the points :)
 
 ## Coin2 - Level 5
 ```
